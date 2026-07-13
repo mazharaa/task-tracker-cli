@@ -7,6 +7,7 @@ import sys
 import re
 
 task_path = Path("task_list.json")
+now = datetime.now(timezone.utc).isoformat()
 
 def main():
   print("Welcome to Task Tracker CLI App")
@@ -42,12 +43,11 @@ def cli_input():
     task_desc = re.search(r'"(.*?)"', command)
     
     if task_desc:
-      update_task(command.split()[1], task_desc.group())
+      update_task(command.split()[1], task_desc.group(1))
 
 def add_task(task_desc):
   task_id = 1
   status = Status.TODO.value
-  now = datetime.now(timezone.utc).isoformat()
 
   task = {
     "id": task_id,
@@ -59,13 +59,17 @@ def add_task(task_desc):
 
   # Auto-create if missing
   if not task_path.exists():
-    task_path.write_text(json.dumps([task], indent=2))
+    task_path.write_text(json.dumps({"tasks": [task], "lastId": task_id} , indent=2))
   else:
     # Read
     data = json.loads(task_path.read_text())
-    task["id"] = data[-1]["id"] + 1
-    data.append(task)
+    task["id"] = data["lastId"] + 1
+    data["lastId"] = task["id"]
+    task_id = task["id"]
+    data["tasks"].append(task)
     task_path.write_text(json.dumps(data, indent=2))
+
+    print(f"Task added successfully (ID: {task_id}).")
 
   cli_input()
 
@@ -76,9 +80,20 @@ def delete_task(id):
   else:
     # Read
     data = json.loads(task_path.read_text())
-    task_by_id = {task["id"]: task for task in data}
-    data.remove(task_by_id.get(id))
-    task_path.write_text(json.dumps(data, indent=2))
+
+    if not data["tasks"]:
+      print("No task to delete, task is empty")
+    else:
+      task_by_id = {task["id"]: task for task in data["tasks"]}
+      task = task_by_id.get(id)
+
+      if task:
+        data["tasks"].remove(task_by_id.get(id))
+        task_path.write_text(json.dumps(data, indent=2))
+
+        print(f"Task with ID: {id}, successfully deleted.")
+      else:
+        print(f"No task found with ID: {id}")
     
   cli_input()
 
@@ -93,9 +108,21 @@ def update_task(id, desc):
   else:
     # Read
     data = json.loads(task_path.read_text())
-    task_by_id = {task["id"]: task for task in data}
-    task_by_id.get(id)["description"] = desc
-    task_path.write_text(json.dumps(data, indent=2))
+
+    if not data["tasks"]:
+      print("No task to update, task is empty")
+    else:
+      task_by_id = {task["id"]: task for task in data["tasks"]}
+      task = task_by_id.get(id)
+
+      if task:
+        task_by_id.get(id)["description"] = desc
+        task_by_id.get(id)["updatedAt"] = now
+        task_path.write_text(json.dumps(data, indent=2))
+
+        print(f"Task with ID: {id}, successfully updated to \"{desc}\".")
+      else:
+        print(f"No task found with ID: {id}")
 
   cli_input()
 
