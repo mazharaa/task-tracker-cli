@@ -46,6 +46,8 @@ def cli_input():
       update_task(command.split()[1], task_desc.group(1))
   elif task_command == Command.MARK_IN_PROGRESS.value:
     mark_in_progress(command.split()[1])
+  elif task_command == Command.MARK_DONE.value:
+    mark_done(command.split()[1])
 
 def add_task(task_desc):
   task_id = 1
@@ -152,6 +154,35 @@ def mark_in_progress(id):
           task_path.write_text(json.dumps(data, indent=2))
 
           print(f"Task with ID: {id}, successfully marked as \"{Status.IN_PROGRESS.value}\".")
+      else:
+        print(f"No task found with ID: {id}")
+
+  cli_input()
+
+def mark_done(id):
+  id = int(id)
+
+  if not task_path.exists():
+    print("No task to update, task is empty")
+  else:
+    # Read
+    data = json.loads(task_path.read_text())
+
+    if not data["tasks"]:
+      print("No task to update, task is empty")
+    else:
+      task_by_id = {task["id"]: task for task in data["tasks"]}
+      task = task_by_id.get(id)
+
+      if task:
+        if task["status"] == Status.DONE.value:
+          print("Task status is already done")
+        else:
+          task_by_id.get(id)["status"] = Status.DONE.value
+          task_by_id.get(id)["updatedAt"] = now
+          task_path.write_text(json.dumps(data, indent=2))
+
+          print(f"Task with ID: {id}, successfully marked as \"{Status.DONE.value}\".")
       else:
         print(f"No task found with ID: {id}")
 
