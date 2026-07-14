@@ -48,6 +48,15 @@ def cli_input():
     mark_in_progress(command.split()[1])
   elif task_command == Command.MARK_DONE.value:
     mark_done(command.split()[1])
+  elif task_command == Command.LIST.value:
+    list_command = command.split()
+
+    if len(list_command) == 1:
+      list()
+  else:
+    print("Command not found")
+
+    cli_input()
 
 def add_task(task_desc):
   task_id = 1
@@ -185,6 +194,21 @@ def mark_done(id):
           print(f"Task with ID: {id}, successfully marked as \"{Status.DONE.value}\".")
       else:
         print(f"No task found with ID: {id}")
+
+  cli_input()
+
+def list():
+  if not task_path.exists():
+    print("No task to update, task is empty")
+  else:
+    # Read
+    data = json.loads(task_path.read_text())
+
+    if not data["tasks"]:
+      print("No task to display, task is empty")
+    else:
+      for i, task in enumerate(data["tasks"]):
+        print(f"{i+1}. {task["description"]}")
 
   cli_input()
 
