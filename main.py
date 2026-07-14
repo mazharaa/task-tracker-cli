@@ -34,7 +34,9 @@ def cli_input():
     
     if task_desc:
       add_task(task_desc.group(1))
-
+    else:
+      print("Please enter a valid description")
+      cli_input()
   elif task_command == Command.DELETE.value:
     delete_task(command.split()[1])
   elif task_command == Command.EXIT.value:
@@ -44,6 +46,9 @@ def cli_input():
     
     if task_desc:
       update_task(command.split()[1], task_desc.group(1))
+    else:
+      print("Please enter a valid description")
+      cli_input()
   elif task_command == Command.MARK_IN_PROGRESS.value:
     mark_in_progress(command.split()[1])
   elif task_command == Command.MARK_DONE.value:
