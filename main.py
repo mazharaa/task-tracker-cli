@@ -59,8 +59,10 @@ def cli_input():
     list_done()
   elif command == Command.LIST_TODO.value:
     list_todo()
+  elif command == Command.LIST_IN_PROGRESS.value:
+    list_in_progrss()
   else:
-    print("Command not found")
+    print("Invalid command")
 
     cli_input()
 
@@ -253,6 +255,25 @@ def list_todo():
           print(f"{i}. {t['description']}")
       else:
         print("No todo task to display")
+
+  cli_input()
+
+def list_in_progrss():
+  if not task_path.exists():
+    print("No task to display, task is empty")
+  else:
+    # Read
+    tasks = json.loads(task_path.read_text())["tasks"]
+
+    if not tasks:
+      print("No task to display, task is empty")
+    else:
+      todo_tasks = [t for t in tasks if t["status"] == Status.IN_PROGRESS.value]
+      if todo_tasks:
+        for i, t in enumerate(todo_tasks, start=1):
+          print(f"{i}. {t['description']}")
+      else:
+        print("No in-progress task to display")
 
   cli_input()
 
